@@ -1,21 +1,88 @@
 # cloud-run-service
 
-A reusable module that deploys a **Cloud Run (2nd gen)** service on GCP. It supports
-configurable environment variables, Secret Manager integration (both as environment
-variables and volume mounts), IAM invoker bindings, VPC connector access, and
-autoscaling limits.
+A reusable module that deploys a **Cloud Run (2nd gen)** service on GCP.
+
+```mermaid
+flowchart TB
+    CR["🚀 Cloud Run (2nd gen) Service"]
+    SM["🔐 Secret Manager"]
+    VPC["🌐 VPC Connector"]
+    IAM["👤 IAM Members"]
+
+    CR -->|"env vars + volume mounts"| SM
+    CR -->|"private egress"| VPC
+    CR -->|"roles/run.invoker"| IAM
+
+    style CR fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style SM fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style VPC fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    style IAM fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+```
+
+## What is this for?
+
+```text
+cloud-run-service
+        │
+        ├──► Run containers on GCP without managing servers or Kubernetes clusters
+        │
+        ├──► Pass configuration like database hostnames and API keys via env vars
+        │
+        ├──► Keep secrets safe by pulling them from Secret Manager instead of hard-coding
+        │
+        ├──► Control who can access it — only specific users or other GCP services
+        │
+        ├──► Connect to private databases and resources inside your VPC
+        │
+        └──► Scale automatically from zero to thousands of requests
+```
 
 This module is designed to be composed with `vpc-shared`, `pubsub-topic-sub`, and
 `cloud-sql-postgres` as part of a repeatable data-product stack.
 
-## What it does
+## Quick Start
 
-- Deploys a Cloud Run service from a container image.
-- Configures CPU/memory limits and min/max instance scaling.
-- Injects plain environment variables and Secret Manager secrets.
-- Mounts Secret Manager secrets as files inside the container.
-- Optionally attaches a VPC connector for private egress.
-- Optionally allows unauthenticated access or grants invoker access to specific IAM members.
+```hcl
+module "api" {
+  source = "github.com/your-org/gcp-terraform-platform-modules//modules/cloud-run-service?ref=v1.0.0"
+
+  project_id   = "my-project-123"
+  region       = "us-central1"
+  service_name = "payment-api"
+  image_uri    = "gcr.io/my-project-123/payment-api:v2.1.0"
+
+  # Simple config values
+  environment_variables = {
+    LOG_LEVEL = "debug"
+    DB_HOST   = "10.0.0.5"
+  }
+
+  # Sensitive values pulled from Secret Manager
+  secret_environment_variables = [
+    {
+      name    = "DB_PASSWORD"
+      secret  = "db-password"
+      version = "latest"
+    }
+  ]
+
+  # Only these users/services can call the API
+  invoker_members = [
+    "user:alice@example.com",
+    "serviceAccount:batch-job@my-project-123.iam.gserviceaccount.com"
+  ]
+
+  # Always keep 1 instance warm, but never exceed 20
+  min_instances = 1
+  max_instances = 20
+}
+```
+
+After running `terraform apply`, your service will be live at a URL like:
+
+```text
+https://payment-api-abc123-uc.a.run.app
+```
 
 ## Usage
 
@@ -59,7 +126,7 @@ module "cloud_run" {
 
   service_account = module.workload_service_account.email
 
-  vpc_connector = module.vpc_shared.vpc_connector_id
+  vpc_connector = google_vpc_access_connector.connector.id
   egress        = "PRIVATE_RANGES_ONLY"
   ingress       = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 

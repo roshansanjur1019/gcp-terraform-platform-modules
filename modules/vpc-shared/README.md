@@ -1,8 +1,39 @@
 # vpc-shared
 
-A reusable, opinionated shared VPC module for GCP. It creates a custom VPC network,
-one or more regional subnets, an optional Cloud NAT gateway for private outbound
-internet access, and a set of firewall rules.
+A reusable, opinionated shared VPC module for GCP.
+
+```mermaid
+flowchart TB
+    VPC["🌐 Shared VPC"]
+    SUB["📍 Subnets"]
+    NAT["🔁 Cloud NAT + Router"]
+    FW["🔥 Firewall Rules"]
+
+    VPC --> SUB
+    VPC --> NAT
+    VPC --> FW
+
+    style VPC fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+    style SUB fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    style NAT fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style FW fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+```
+
+## What is this for?
+
+```text
+vpc-shared
+    │
+    ├──► Create a custom VPC network for your workloads
+    │
+    ├──► Segment workloads into regional subnets
+    │
+    ├──► Enable private Google API access without public IPs
+    │
+    ├──► Provide outbound internet via Cloud NAT
+    │
+    └──► Control traffic between subnets with firewall rules
+```
 
 This module is designed to be consumed by other modules in this library — for
 example, providing the network and subnets that Cloud SQL, Cloud Run, and

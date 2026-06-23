@@ -29,5 +29,12 @@ terraform.rc
 # Local tooling binaries
 .bin/
 
+# Terraform variable files (may contain secrets)
+*.tfvars
+*.tfvars.json
+
+# Keep example variable files tracked
+!*.tfvars.example
+
 # NOTE: .terraform.lock.hcl is intentionally tracked so that provider
 # selections are reproducible across machines and CI runs.

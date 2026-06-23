@@ -1,0 +1,18 @@
+# Example values for the data-product-deploy root module.
+# Copy this file to terraform.tfvars and customize it for your environment.
+
+project_id = "my-gcp-project"
+region     = "us-central1"
+environment = "dev"
+
+name_prefix   = "data-product"
+network_cidr  = "10.0.0.0/24"
+database_tier = "db-f1-micro"
+
+cloud_run_image = "gcr.io/my-gcp-project/data-product-api:v1.0.0"
+
+# Optional: grant invoker access to specific principals.
+# Leave empty to require authentication via IAM.
+cloud_run_invoker_members = [
+  # "serviceAccount:scheduler@my-gcp-project.iam.gserviceaccount.com"
+]
